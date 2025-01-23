@@ -1,36 +1,34 @@
 ##########################################################
-#################### EXPLORE .NC FILE ####################
+################# EXPLORE SURF_DATA FILE #################
 ##########################################################
 
-# open .nc file
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import numpy as np
 
-# file path
+# File path
 file_path = "/pscratch/sd/w/wang1698/rw_project/surfdata_0.9x1.25_simyr1700_c240826.nc"
 dataset = Dataset(file_path, mode='r')
 
-# get a brief summary
+# Get a brief summary
 print(dataset)
 
-## explore metadata
-# list dimensions
+# Explore metadata
 print("Dimensions:", dataset.dimensions.keys())
 for dim_name, dim in dataset.dimensions.items():
     print(f"Dimension: {dim_name}, Size: {len(dim)}")
 
-# global attributes
+# Global attributes
 print("Global attributes:", dataset.ncattrs())
 for attr in dataset.ncattrs():
     print(f"{attr}: {getattr(dataset, attr)}")
 
-# explore variables
+# Explore variables
 print("Variables:", dataset.variables.keys())
 
-# check three specific variables: 'SOIL_COLOR', 'LONGXY', and 'LATIXY'
+# Check three specific variables: 'SOIL_COLOR', 'LONGXY', and 'LATIXY'
 variables_to_check = ['SOIL_COLOR', 'LONGXY', 'LATIXY']
 for variable_name in variables_to_check:
     if variable_name in dataset.variables:
@@ -38,9 +36,18 @@ for variable_name in variables_to_check:
         print(f"\nVariable: {variable_name}")
         print(f"Data type: {var.dtype}")
         print(f"Dimensions: {var.dimensions}")
-        print(f"Shape (size of each dimensions): {var.shape}")
+        print(f"Shape (size of each dimension): {var.shape}")
         print(f"Attributes: {var.ncattrs()}")
         print(f"Data: {var[:]}")  # Be cautious with large datasets
+
+        # Print matrix representation
+        data = var[:]
+        print(f"\nMatrix Representation of {variable_name}:\n")
+        if data.ndim == 2:
+            print(data)
+        else:
+            print(f"{variable_name} has more than 2 dimensions; showing a 2D slice.")
+            print(data[0])  # Display first "slice" of high-dimensional data
 
 # Extract data for mapping
 if all(var in dataset.variables for var in ['SOIL_COLOR', 'LONGXY', 'LATIXY']):
@@ -54,16 +61,6 @@ else:
 import matplotlib
 matplotlib.use('Agg')  # Use Agg backend for headless systems
 
-# Import other libraries
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import numpy as np
-
-# Dummy data for testing (replace with your dataset variables)
-longxy, latixy = np.meshgrid(np.linspace(-180, 180, 50), np.linspace(-90, 90, 25))
-soil_color = np.random.random((25, 50))  # Replace with dataset variable 'SOIL_COLOR'
-
 # Map visualization
 plt.figure(figsize=(10, 6))
 ax = plt.axes(projection=ccrs.PlateCarree())
@@ -76,6 +73,7 @@ mesh = ax.pcolormesh(longxy, latixy, soil_color, transform=ccrs.PlateCarree(), c
 plt.colorbar(mesh, ax=ax, orientation='vertical', label="Soil Color")
 plt.title("SOIL COLOR MAP")
 
-# Save the plot instead of showing it
+# Save the plot
 plt.savefig("map_output.png")
 print("Map saved as map_output.png")
+
